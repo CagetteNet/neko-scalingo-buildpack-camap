@@ -1,0 +1,19 @@
+
+** Buildpacks
+
+- haxe on scalingo is built with [[https://doc.scalingo.com/platform/deployment/buildpacks/custom][custom buildpack]]
+
+Test build with:
+#+begin_src shell :eval no
+  docker run --pull always --rm -ti -e STACK=scalingo-20 \
+         -v $PWD:/buildpack \
+         -v $PWD/../app/:/build scalingo/scalingo-20:latest bash  
+#+end_src
+
+Note that a small profile script is required to merge runtime
+environement variables to the =config.xml= file.
+
+** DB
+
+DB firewall was updated to allow access from [[https://doc.scalingo.com/platform/internals/network#osc-fr1-region][Scalingo's egress address]]
+(=171.33.105.206=)
