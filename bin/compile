@@ -109,5 +109,14 @@ cp $BUILD_DIR/config.xml.dist config-raw.xml
 
 #USER root
 
+echo "--> setup profile script"
+cd $BUILD_DIR
+mkdir -p .profile.d
+
+cat > ".profile.d/update.sh" <<SH
+cd /srv
+perl /srv/scripts/update-config.pl config-raw.xml config.xml
+SH
+
 #CMD ["bash", "scripts/start.sh", "config-raw.xml", "config.xml" ]
 echo "--> all done"
