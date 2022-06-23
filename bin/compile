@@ -1,0 +1,113 @@
+#!/bin/bash
+
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+ENV_DIR=${3:-}
+
+set -e
+set -u
+
+echo "--> install Debian packages"
+apt-get update
+apt-get install -y git curl imagemagick apache2 haxe libapache2-mod-neko \
+        libxml-twig-perl npm nodejs libutf8-all-perl
+apt-get clean
+
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+export APACHE_LOG_DIR=/var/log/apache2
+
+# This value should be overridden by CI/CD
+export VERSION=unknown
+
+# redirect all logs to stdtout
+ln -sf /proc/self/fd/1 /var/log/apache2/access.log
+ln -sf /proc/self/fd/1 /var/log/apache2/error.log
+
+echo "--> enable some Apache modules"
+a2enmod rewrite
+a2enmod neko
+
+sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+cp $BUILD_DIR/apache.conf /etc/apache2/sites-available/cagette.conf
+
+a2ensite cagette
+
+echo "--> install lix"
+npm install -g lix
+
+chown www-data:www-data /srv /var/www
+
+echo "--> install haxelib and templo"
+haxelib setup /usr/share/haxelib
+haxelib install templo
+
+echo "--> install temploc2 with templo"
+cd /usr/bin
+haxelib run templo
+cd -
+
+echo "--> copy source files"
+# WHY: src/App.hx:20: characters 58-84 : Cannot execute `git log -1 --format=%h`. fatal: not a git repository (or any of the parent directories): .git
+# TODO: remove
+cp -r $BUILD_DIR/.git /srv/.git
+
+cp -r $BUILD_DIR/common/ /srv/common/
+cp -r $BUILD_DIR/data/ /srv/data/
+cp -r $BUILD_DIR/devLibs/ /srv/devLibs/
+cp -r $BUILD_DIR/js/ /srv/js/
+cp -r $BUILD_DIR/lang/ /srv/lang/
+cp -r $BUILD_DIR/src/ /srv/src/
+cp -r $BUILD_DIR/www/ /srv/www/
+cp -r $BUILD_DIR/plugins/ /srv/plugins/
+cp -r $BUILD_DIR/backend/ /srv/backend/
+
+chown -R www-data:www-data /srv
+
+echo "--> lix  install backend"
+cd /srv/backend
+lix scope create
+lix install haxe 4.0.5
+lix use haxe 4.0.5
+lix download
+
+cp -r $BUILD_DIR/frontend/ /srv/frontend/
+chown -R www-data:www-data /srv/frontend/
+
+echo "--> lix  install frontend"
+cd /srv/frontend
+lix scope create
+lix use haxe 4.0.5
+lix download
+npm install
+
+echo "--> copy config"
+cd /srv
+cp $BUILD_DIR/config.xml.dist config.xml
+
+cd /srv/backend
+
+echo "--> haxe build backend"
+haxe build.hxml -D i18n_generation;
+
+echo "--> haxe build frontend"
+cd /srv/frontend
+haxe build.hxml
+
+echo "--> generate mtt files"
+cd /srv/lang/fr/tpl/
+neko ../../../backend/temploc2.n -macros macros.mtt -output ../tmp/ *.mtt */*.mtt */*/*.mtt */*/*/*.mtt */*/*/*/*.mtt
+
+
+cd /srv
+
+echo "--> copy scripts"
+# holds connexion config
+cp -r $BUILD_DIR/scripts/ /srv/scripts/
+cp $BUILD_DIR/config.xml.dist config-raw.xml
+
+#USER root
+
+#CMD ["bash", "scripts/start.sh", "config-raw.xml", "config.xml" ]
+echo "--> all done"
