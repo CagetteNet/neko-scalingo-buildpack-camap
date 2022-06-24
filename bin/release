@@ -3,5 +3,5 @@
 cat << EOF
 ---
 default_process_types:
-  web: apache2ctl -D FOREGROUND -f /app/apache-scalingo.conf
+  web: apache2 -D FOREGROUND -f /app/apache-scalingo.conf
 EOF
