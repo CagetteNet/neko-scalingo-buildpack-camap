@@ -36,7 +36,6 @@ mkdir -p $SRV_DIR
 echo "--> copy source files in $SRV_DIR"
 cp -r $BUILD_DIR/common/ $SRV_DIR/common/
 cp -r $BUILD_DIR/data/ $SRV_DIR/data/
-cp -r $BUILD_DIR/devLibs/ $SRV_DIR/devLibs/
 cp -r $BUILD_DIR/js/ $SRV_DIR/js/
 cp -r $BUILD_DIR/lang/ $SRV_DIR/lang/
 cp -r $BUILD_DIR/src/ $SRV_DIR/src/
