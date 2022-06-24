@@ -13,6 +13,15 @@ Test build with:
 Note that a small profile script is required to merge runtime
 environement variables to the =config.xml= file.
 
+*** Buildpack github token
+
+The custom buildpack is stored in a private repo. The
+buildpack URL must include a valid github token (aka =PAT=).
+
+#+begin_example
+BUILDPACK_URL=https://<token>@github.com/CagetteNet/neko-scalingo-buildpack.git#main
+#+end_example
+
 ** DB
 
 DB firewall was updated to allow access from [[https://doc.scalingo.com/platform/internals/network#osc-fr1-region][Scalingo's egress address]]
