@@ -4,119 +4,98 @@ BUILD_DIR=${1:-}
 CACHE_DIR=${2:-}
 ENV_DIR=${3:-}
 
+APP_DIR=/app
+
 set -e
 set -u
 
-echo "--> install Debian packages"
-apt-get update
-apt-get install -y git curl imagemagick apache2 haxe libapache2-mod-neko \
-        libxml-twig-perl npm nodejs libutf8-all-perl
-apt-get clean
+cd $APP_DIR
 
-export APACHE_RUN_USER=www-data
-export APACHE_RUN_GROUP=www-data
-export APACHE_LOG_DIR=/var/log/apache2
-
-# This value should be overridden by CI/CD
-export VERSION=unknown
-
-# redirect all logs to stdtout
-ln -sf /proc/self/fd/1 /var/log/apache2/access.log
-ln -sf /proc/self/fd/1 /var/log/apache2/error.log
-
-echo "--> enable some Apache modules"
-a2enmod rewrite
-a2enmod neko
-
-sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
-
-cp $BUILD_DIR/apache.conf /etc/apache2/sites-available/cagette.conf
-
-a2ensite cagette
+mkdir -p bin
+export PATH=$APP_DIR/bin:$PATH
 
 echo "--> install lix"
-npm install -g lix
+npm install lix
 
-chown www-data:www-data /srv /var/www
+# lix installs its own haxe and haxelib scripts that must override
+# /usr/bin/haxe and /usr/bin/haxelib
+export PATH=$APP_DIR/node_modules/.bin/:$PATH
 
-echo "--> install haxelib and templo"
-haxelib setup /usr/share/haxelib
+echo "--> install templo"
+haxelib setup $APP_DIR/haxelib
 haxelib install templo
 
 echo "--> install temploc2 with templo"
-cd /usr/bin
+cd bin
 haxelib run templo
-cd -
+cd $APP_DIR
 
-echo "--> copy source files"
+SRV_DIR=$APP_DIR/srv
+mkdir -p $SRV_DIR
+
+echo "--> copy source files in $SRV_DIR"
 # WHY: src/App.hx:20: characters 58-84 : Cannot execute `git log -1 --format=%h`. fatal: not a git repository (or any of the parent directories): .git
 # TODO: remove
-cp -r $BUILD_DIR/.git /srv/.git
+cp -r $BUILD_DIR/.git $SRV_DIR/.git
 
-cp -r $BUILD_DIR/common/ /srv/common/
-cp -r $BUILD_DIR/data/ /srv/data/
-cp -r $BUILD_DIR/devLibs/ /srv/devLibs/
-cp -r $BUILD_DIR/js/ /srv/js/
-cp -r $BUILD_DIR/lang/ /srv/lang/
-cp -r $BUILD_DIR/src/ /srv/src/
-cp -r $BUILD_DIR/www/ /srv/www/
-cp -r $BUILD_DIR/plugins/ /srv/plugins/
-cp -r $BUILD_DIR/backend/ /srv/backend/
-
-chown -R www-data:www-data /srv
+cp -r $BUILD_DIR/common/ $SRV_DIR/common/
+cp -r $BUILD_DIR/data/ $SRV_DIR/data/
+cp -r $BUILD_DIR/devLibs/ $SRV_DIR/devLibs/
+cp -r $BUILD_DIR/js/ $SRV_DIR/js/
+cp -r $BUILD_DIR/lang/ $SRV_DIR/lang/
+cp -r $BUILD_DIR/src/ $SRV_DIR/src/
+cp -r $BUILD_DIR/www/ $SRV_DIR/www/
+cp -r $BUILD_DIR/plugins/ $SRV_DIR/plugins/
+cp -r $BUILD_DIR/backend/ $SRV_DIR/backend/
 
 echo "--> lix  install backend"
-cd /srv/backend
+cd $SRV_DIR/backend
 lix scope create
 lix install haxe 4.0.5
 lix use haxe 4.0.5
 lix download
 
-cp -r $BUILD_DIR/frontend/ /srv/frontend/
-chown -R www-data:www-data /srv/frontend/
+cp -r $BUILD_DIR/frontend/ $SRV_DIR/frontend/
 
 echo "--> lix  install frontend"
-cd /srv/frontend
+cd $SRV_DIR/frontend
 lix scope create
 lix use haxe 4.0.5
 lix download
 npm install
 
 echo "--> copy config"
-cd /srv
-cp $BUILD_DIR/config.xml.dist config.xml
-
-cd /srv/backend
+cp $BUILD_DIR/config.xml.dist $SRV_DIR/config.xml
+cp $BUILD_DIR/apache-scalingo.conf $APP_DIR
 
 echo "--> haxe build backend"
+cd $SRV_DIR/backend
 haxe build.hxml -D i18n_generation;
 
 echo "--> haxe build frontend"
-cd /srv/frontend
+cd $SRV_DIR/frontend
 haxe build.hxml
 
 echo "--> generate mtt files"
-cd /srv/lang/fr/tpl/
+cd $SRV_DIR/lang/fr/tpl/
 neko ../../../backend/temploc2.n -macros macros.mtt -output ../tmp/ *.mtt */*.mtt */*/*.mtt */*/*/*.mtt */*/*/*/*.mtt
 
-
-cd /srv
+cd $SRV_DIR
 
 echo "--> copy scripts"
 # holds connexion config
-cp -r $BUILD_DIR/scripts/ /srv/scripts/
+cp -r $BUILD_DIR/scripts/ $SRV_DIR/scripts/
 cp $BUILD_DIR/config.xml.dist config-raw.xml
 
 #USER root
 
 echo "--> setup profile script"
-cd $BUILD_DIR
+cd $APP_DIR
 mkdir -p .profile.d
 
 cat > ".profile.d/update.sh" <<SH
-cd /srv
-perl /srv/scripts/update-config.pl config-raw.xml config.xml
+cd $SRV_DIR
+perl $SRV_DIR/scripts/update-config.pl config-raw.xml config.xml
 SH
 
-#CMD ["bash", "scripts/start.sh", "config-raw.xml", "config.xml" ]
 echo "--> all done"
