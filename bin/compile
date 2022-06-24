@@ -88,13 +88,13 @@ echo "--> setup profile script"
 cd $BUILD_DIR
 mkdir -p .profile.d
 
-cat > ".profile.d/update.sh" <<SH
-export PATH="\$HOME/.apt/usr/sbin:\$PATH"
-export PSEUDO_CHROOT="\$HOME/.apt"
+cat > ".profile.d/update.sh" <<"SH"
+export PATH="$HOME/.apt/usr/sbin:$PATH"
+export PSEUDO_CHROOT="$HOME/.apt"
 # find all perl library paths and prepend ~/.apt to all paths
 export PERL5LIB=$(perl -E 'say join ":", map { "$ENV{PSEUDO_CHROOT}$_" } grep { m!^/usr! } @INC;')
-cd \$HOME/srv
-perl \$HOME/scripts/update-config.pl config-raw.xml config.xml
+cd $HOME/srv
+perl $HOME/scripts/update-config.pl config-raw.xml config.xml
 SH
 
 echo "--> all done"
