@@ -34,10 +34,6 @@ SRV_DIR=$APP_DIR/srv
 mkdir -p $SRV_DIR
 
 echo "--> copy source files in $SRV_DIR"
-# WHY: src/App.hx:20: characters 58-84 : Cannot execute `git log -1 --format=%h`. fatal: not a git repository (or any of the parent directories): .git
-# TODO: remove
-cp -r $BUILD_DIR/.git $SRV_DIR/.git
-
 cp -r $BUILD_DIR/common/ $SRV_DIR/common/
 cp -r $BUILD_DIR/data/ $SRV_DIR/data/
 cp -r $BUILD_DIR/devLibs/ $SRV_DIR/devLibs/
