@@ -89,10 +89,10 @@ cd $BUILD_DIR
 mkdir -p .profile.d
 
 cat > ".profile.d/update.sh" <<SH
-cd $SRV_DIR
 export PATH="\$HOME/.apt/usr/sbin:\$PATH"
 export PERL5LIB="\$HOME/.apt/usr/share/perl5"
-perl $BUILD_DIR/scripts/update-config.pl config-raw.xml config.xml
+cd \$HOME/srv
+perl \$HOME/scripts/update-config.pl config-raw.xml config.xml
 SH
 
 echo "--> all done"
