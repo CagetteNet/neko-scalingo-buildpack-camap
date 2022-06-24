@@ -85,7 +85,7 @@ cp $BUILD_DIR/config.xml.dist config-raw.xml
 #USER root
 
 echo "--> setup profile script"
-cd $APP_DIR
+cd $BUILD_DIR
 mkdir -p .profile.d
 
 cat > ".profile.d/update.sh" <<SH
