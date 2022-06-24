@@ -91,6 +91,7 @@ mkdir -p .profile.d
 cat > ".profile.d/update.sh" <<SH
 cd $SRV_DIR
 export PATH="\$HOME/.apt/usr/sbin:\$PATH"
+export PERL5LIB="\$HOME/.apt/usr/share/perl5"
 perl $SRV_DIR/scripts/update-config.pl config-raw.xml config.xml
 SH
 
