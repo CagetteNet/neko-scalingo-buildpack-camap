@@ -48,7 +48,7 @@ cp config.xml.dist config.xml
 
 echo "--> haxe build backend"
 cd $BUILD_DIR/backend
-haxe build.hxml
+haxe build.hxml -D i18n_generation;
 
 echo "--> haxe build frontend"
 cd $BUILD_DIR/frontend
