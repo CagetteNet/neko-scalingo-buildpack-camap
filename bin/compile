@@ -1,11 +1,17 @@
 #!/bin/bash
 
-BUILD_DIR=${1:-}
-CACHE_DIR=${2:-}
-ENV_DIR=${3:-}
+export BUILD_DIR=${1:-}
+export CACHE_DIR=${2:-}
+export ENV_DIR=${3:-}
 
 set -e
 set -u
+
+cd $HOME
+
+echo "--> show ENV"
+env | sort
+echo "--> end ENV"
 
 mkdir -p bin
 export PATH=$BUILD_DIR/bin:$PATH
