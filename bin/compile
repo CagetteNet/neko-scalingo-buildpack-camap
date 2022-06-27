@@ -46,6 +46,10 @@ lix use haxe 4.0.5
 lix download
 npm install
 
+echo "--> copy config"
+cd $BUILD_DIR
+cp config.xml.dist config.xml
+
 echo "--> haxe build backend"
 cd $BUILD_DIR/backend
 haxe build.hxml -D i18n_generation;
