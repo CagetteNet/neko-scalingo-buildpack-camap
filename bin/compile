@@ -74,6 +74,8 @@ mkdir -p .profile.d
 cat > ".profile.d/update.sh" <<"SH"
 export PATH="$HOME/.apt/usr/sbin:$PATH"
 export PSEUDO_CHROOT="$HOME/.apt"
+# Tell Neko where to find its libraries https://nekovm.org/doc/vm/#libraries
+export NEKOPATH=${PSEUDO_CHROOT}/usr/lib/x86_64-linux-gnu/neko/
 # find all perl library paths and prepend ~/.apt to all paths
 export PERL5LIB=$(perl -E 'say join ":", map { "$ENV{PSEUDO_CHROOT}$_" } grep { m!^/usr! } @INC;')
 echo "Running in $PWD"
