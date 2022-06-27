@@ -60,7 +60,7 @@ neko ../../../backend/temploc2.n -macros macros.mtt -output ../tmp/ *.mtt */*.mt
 
 cd $BUILD_DIR
 
-echo "--> copy scripts"
+echo "--> copy config file"
 cp $BUILD_DIR/config.xml.dist config-raw.xml
 
 echo "--> setup profile script"
