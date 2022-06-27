@@ -9,10 +9,6 @@ set -u
 
 cd $HOME
 
-echo "--> show ENV"
-env | sort
-echo "--> end ENV"
-
 mkdir -p bin
 export PATH=$BUILD_DIR/bin:$PATH
 
