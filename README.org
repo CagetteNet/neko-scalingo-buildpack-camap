@@ -1,7 +1,19 @@
 
 ** Buildpacks
 
-- haxe on scalingo is built with [[https://doc.scalingo.com/platform/deployment/buildpacks/custom][custom buildpack]]
+*** Introduction
+A buildpack has three mandatory entrypoints:
+
+- bin/detect: exit with success (return code is 0) if the buildpack applies to the current application.
+- bin/compile: installs the dependencies of the project. It is called with three arguments:
+    - The build directory: contains the code of the application. /BUILD_DIR=${1:-}/
+    - The cache directory: used to store information one want to keep between two builds. /CACHE_DIR=${2:-}/
+    - The environment directory: contains a file per environment variable defined. For instance, an environment variable TEST=1234 leads to a file named TEST containing 1234. /ENV_DIR=${3:-}/
+- bin/release: handles some metadata and defines how the application should be started.
+All these entrypoints are usually Bash script.
+
+*** Neko Scalingo Buildpack
+- Haxe on Scalingo is built with a [[https://doc.scalingo.com/platform/deployment/buildpacks/custom][custom buildpack]] which is in this repository.
 
 Test build with:
 #+begin_src shell :eval no
