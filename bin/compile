@@ -55,7 +55,9 @@ cd $BUILD_DIR/frontend
 haxe build.hxml
 
 echo "--> generate mtt files"
-cd $BUILD_DIR/lang/fr/tpl/
+cd $BUILD_DIR/lang/fr/
+mkdir tmp
+cd tpl
 neko ../../../backend/temploc2.n -macros macros.mtt -output ../tmp/ *.mtt */*.mtt */*/*.mtt
 
 cd $BUILD_DIR
